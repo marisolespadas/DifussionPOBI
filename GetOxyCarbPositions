@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+import xml.dom.minidom
+import xml.etree.ElementTree as ET
+import glob
+import re
+
+xod_list = glob.glob('*.xod')
+ps = []
+for i in range(len(xod_list)):
+    ps.append(re.sub('ps','',re.findall('\((.*?)\)', xod_list[i])[-1]))
+ps.sort(key=int)
+
+fileC = open("C:\\Users\\cindy.espadas\\Documents\\"+re.findall('From (.*?)\)', xod_list[0])[0]+")_XYZ_C.txt", "w")
+fileO = open("C:\\Users\\cindy.espadas\\Documents\\"+re.findall('From (.*?)\)', xod_list[0])[0]+")_XYZ_O.txt", "w")
+pre = re.split(r"(\d+)ps", xod_list[0])[0]
+pos = re.split(r"(\d+)ps", xod_list[0])[2]
+fileC.write("%s\n" %('Carbonos;'))
+fileO.write("%s\n" %('Oxigenos;'))
+
+for i in range(len(xod_list)):
+    xod_file = pre + ps[i] + "ps" + pos
+    tree = ET.parse(xod_file)
+    root = tree.getroot()
+    Molec_C = ""
+    Molec_O = ""
+    for atom in root.findall("./AtomisticCollectionTreeRoot/PhysicalSystem/SymmetrySystem/MappingSet/MappingFamily/IdentityMapping/Atom3d[@ForcefieldType='c2=']"):
+        Molec_C = Molec_C + str(atom.attrib["ID"]).rstrip() + ';' + str(atom.attrib["XYZ"]).rstrip() + ';' + '\n'
+    Molec_C = Molec_C.replace(",", ";")
+    fileC.write("%s\n" %(ps[i]+';'+'X'+';'+'Y'+';'+'Z'+';'))
+    fileC.write("%s\n" %(Molec_C))
+    for atom in root.findall("./AtomisticCollectionTreeRoot/PhysicalSystem/SymmetrySystem/MappingSet/MappingFamily/IdentityMapping/Atom3d[@ForcefieldType='o1=*']"):
+        Molec_O = Molec_O + str(atom.attrib["ID"]).rstrip() + ';' + str(atom.attrib["XYZ"]).rstrip() + ';' + '\n'
+    Molec_O = Molec_O.replace(",", ";")
+    fileO.write("%s\n" %(ps[i]+';'+'X'+';'+'Y'+';'+'Z'+';'))
+    fileO.write("%s\n" %(Molec_O))
+fileC.close()
+fileO.close()
